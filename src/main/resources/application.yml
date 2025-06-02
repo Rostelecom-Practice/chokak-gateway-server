@@ -1,0 +1,9 @@
+spring:
+  application:
+    name:
+      gateway
+services:
+  core:
+    url: http://chokak-server:8084
+  storage:
+    url: http://chokak-server:8085
