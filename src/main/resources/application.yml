@@ -7,3 +7,9 @@ services:
     url: http://chokak-server:8084
   storage:
     url: http://chokak-server:8085
+server:
+  port: 8000
+
+firebase:
+  credentials:
+    path: chokak-rostelekom-practice-firebase-adminsdk-fbsvc-f5e6e8780b.json

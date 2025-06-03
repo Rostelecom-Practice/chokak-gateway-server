@@ -1,0 +1,61 @@
+# firebase sdk key
+*adminsdk*.json
+
+# Скомпилированные файлы классов
+*.class
+
+# Логи
+*.log
+
+# Каталоги, создаваемые IDE
+/.idea/
+/*.iml
+/.project
+/.classpath
+/.settings/
+
+# Каталоги и файлы Maven
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Каталоги и файлы Gradle
+/.gradle/
+/build/
+/out/
+.gradle/
+/build/
+
+# Каталоги NetBeans
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Каталоги Eclipse
+/.metadata/
+/bin/
+/tmp/
+
+# Каталоги VS Code
+/.vscode/
+/.idea/
+/.gigaide/
+
+# Временные файлы
+*.swp
+*.swo
+*~
+
+# Файлы ОС
+.DS_Store
+Thumbs.db
+
+# Конфигурационные файлы (по желанию)
+*.env
+
+# Файлы пакетов
+*.jar
+*.war
+*.ear
