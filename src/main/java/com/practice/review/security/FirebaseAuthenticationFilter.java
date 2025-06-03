@@ -20,31 +20,41 @@ public class FirebaseAuthenticationFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+        ServerWebExchange cleanedExchange = exchange.mutate()
+                .request(r -> r.headers(headers -> headers.remove("X-User-Uid")))
+                .build();
+
+        String authHeader = cleanedExchange.getRequest().getHeaders().getFirst("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return chain.filter(exchange);
+            return chain.filter(cleanedExchange);
         }
 
         String idToken = authHeader.substring(7);
 
         return Mono.fromCallable(() -> FirebaseAuth.getInstance().verifyIdToken(idToken))
                 .subscribeOn(Schedulers.boundedElastic())
-                .map(firebaseToken -> {
+                .flatMap(firebaseToken -> {
+                    ServerWebExchange mutatedExchange = exchange.mutate()
+                            .request(exchange.getRequest().mutate()
+                                    .header("X-User-Uid", firebaseToken.getUid())
+                                    .build())
+                            .build();
+
                     Authentication auth = new UsernamePasswordAuthenticationToken(
                             firebaseToken.getUid(),
                             null,
                             Collections.emptyList()
                     );
-                    return new SecurityContextImpl(auth);
+
+                    SecurityContextImpl securityContext = new SecurityContextImpl(auth);
+
+                    return chain.filter(mutatedExchange)
+                            .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext)));
                 })
-                .flatMap(securityContext ->
-                        chain.filter(exchange)
-                                .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext)))
-                )
                 .onErrorResume(e -> {
-                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    return exchange.getResponse().setComplete();
+                    cleanedExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return cleanedExchange.getResponse().setComplete();
                 });
     }
 }
