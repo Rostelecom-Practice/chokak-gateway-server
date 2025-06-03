@@ -3,6 +3,7 @@ package com.practice.review.config;
 import com.practice.review.security.FirebaseAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -18,8 +19,15 @@ public class SecurityConfig {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/public/**").permitAll()
-                        .anyExchange().authenticated()
+                        .pathMatchers(
+                                "/api/review/submit",
+                                "/api/review/reply/**",
+                                "/api/review/react",
+                                "/api/users/me/reviews"
+                        ).authenticated()
+                        .pathMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .pathMatchers( "/uploads/**").authenticated()
+                        .anyExchange().permitAll()
                 )
                 .addFilterAt(new FirebaseAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
