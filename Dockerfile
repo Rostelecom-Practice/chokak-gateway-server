@@ -1,14 +1,20 @@
-FROM eclipse-temurin:17-jdk-jammy
+# Build stage с Maven
+FROM maven:3.9-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 
+# Только зависимости — кешируется
 COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Копируем исходники и собираем
 COPY src ./src
+RUN mvn clean package -DskipTests
 
-RUN apt-get update && apt-get install -y maven \
-    && mvn clean package -DskipTests \
-    && apt-get remove -y maven \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+# Runtime stage — только JRE
+FROM eclipse-temurin:17-jdk-jammy
 
-ENTRYPOINT ["java", "-jar", "target/app.jar"]
+WORKDIR /app
+COPY --from=builder /app/target/*.jar ./app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

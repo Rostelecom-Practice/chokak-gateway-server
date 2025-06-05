@@ -38,9 +38,11 @@ public class FirebaseConfig {
         }
 
         String jsonString = readFirebaseCredentialsAsString();
-        log.debug("Содержимое service-account.json:\n{}", jsonString);
+        log.info("Содержимое service-account.json:\n {}", jsonString);
+
 
         FirebaseOptions options = FirebaseOptions.builder()
+                .setProjectId("chokak-rostelekom-practice")
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
 

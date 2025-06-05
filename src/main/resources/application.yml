@@ -5,7 +5,7 @@ services:
   core:
     url: http://chokak-server:8084
   storage:
-    url: http://chokak-server:8085
+    url: http://chokak-cloud-storage:8088
 server:
   port: 8000
 
