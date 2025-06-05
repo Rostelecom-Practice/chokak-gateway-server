@@ -1,6 +1,9 @@
 package com.practice.review.security;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,23 +21,28 @@ import java.util.Collections;
 @Component
 public class FirebaseAuthenticationFilter implements WebFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(FirebaseAuthenticationFilter.class);
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        // Удаляем X-User-Uid на входе
         ServerWebExchange cleanedExchange = exchange.mutate()
                 .request(r -> r.headers(headers -> headers.remove("X-User-Uid")))
                 .build();
 
         String authHeader = cleanedExchange.getRequest().getHeaders().getFirst("Authorization");
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.debug("Нет заголовка Authorization или он не начинается с Bearer → пропускаем далее без аутентификации");
             return chain.filter(cleanedExchange);
         }
 
-        String idToken = authHeader.substring(7);
+        String idToken = authHeader.substring(7).trim();
+        log.debug("Найден Authorization: Bearer <{}...>. Начинаем verifyIdToken", idToken.length() > 10 ? idToken.substring(0, 10) : idToken);
 
         return Mono.fromCallable(() -> FirebaseAuth.getInstance().verifyIdToken(idToken))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(firebaseToken -> {
+                    log.info("verifyIdToken прошёл успешно. UID: {}", firebaseToken.getUid());
                     ServerWebExchange mutatedExchange = exchange.mutate()
                             .request(exchange.getRequest().mutate()
                                     .header("X-User-Uid", firebaseToken.getUid())
@@ -46,13 +54,14 @@ public class FirebaseAuthenticationFilter implements WebFilter {
                             null,
                             Collections.emptyList()
                     );
-
                     SecurityContextImpl securityContext = new SecurityContextImpl(auth);
 
                     return chain.filter(mutatedExchange)
                             .contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(securityContext)));
                 })
                 .onErrorResume(e -> {
+                    log.warn("Ошибка при verifyIdToken: {}", e.getMessage());
+                    log.debug("Stacktrace:", e);
                     cleanedExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return cleanedExchange.getResponse().setComplete();
                 });

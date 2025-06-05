@@ -1,7 +1,6 @@
 spring:
   application:
-    name:
-      gateway
+    name: gateway
 services:
   core:
     url: http://chokak-server:8084
