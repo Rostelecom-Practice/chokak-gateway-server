@@ -15,7 +15,9 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.UUID;
 
 @Component
 public class FirebaseAuthenticationFilter implements WebFilter {
@@ -41,15 +43,20 @@ public class FirebaseAuthenticationFilter implements WebFilter {
         return Mono.fromCallable(() -> FirebaseAuth.getInstance().verifyIdToken(idToken))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(firebaseToken -> {
-                    log.info("verifyIdToken прошёл успешно. UID: {}", firebaseToken.getUid());
+                    String firebaseUid = firebaseToken.getUid();
+
+                    UUID userUuid = UUID.nameUUIDFromBytes(firebaseUid.getBytes(StandardCharsets.UTF_8));
+                    String uuidString = userUuid.toString();
+
+                    log.info("verifyIdToken успешен. Firebase UID={} → UUID={}", firebaseUid, uuidString);
                     ServerWebExchange mutatedExchange = exchange.mutate()
                             .request(exchange.getRequest().mutate()
-                                    .header("X-User-Uid", firebaseToken.getUid())
+                                    .header("X-User-Uid", uuidString)
                                     .build())
                             .build();
 
                     Authentication auth = new UsernamePasswordAuthenticationToken(
-                            firebaseToken.getUid(),
+                            uuidString,
                             null,
                             Collections.emptyList()
                     );
