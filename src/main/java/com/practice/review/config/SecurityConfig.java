@@ -18,6 +18,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(ServerHttpSecurity.CorsSpec::disable)
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
                                 "/api/review/submit",
