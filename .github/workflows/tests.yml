@@ -16,8 +16,7 @@ jobs:
       - name: Create secret JSON file in classpath
         run: |
           mkdir -p src/main/resources
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > src/main/resources/firebase-service-account.json
-
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_BASE64 }}" | base64 -d > src/main/resources/firebase-service-account.json
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -31,4 +30,4 @@ jobs:
 
       - name: Cleanup secret file
         if: always()
-        run: rm -f src/resources/firebase-service-account.json
+        run: rm -f src/main/resources/firebase-service-account.json
