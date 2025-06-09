@@ -15,6 +15,7 @@ jobs:
 
       - name: Create secret JSON file
         run: |
+          mkdir -p src/resources
           cat <<EOF > src/resources/firebase-service-account.json
           ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           EOF
