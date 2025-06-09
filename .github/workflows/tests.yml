@@ -13,11 +13,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create secret JSON file
+      - name: Create secret JSON file in classpath
         run: |
           mkdir -p src/main/resources
           echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > src/main/resources/firebase-service-account.json
-          EOF
+
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
