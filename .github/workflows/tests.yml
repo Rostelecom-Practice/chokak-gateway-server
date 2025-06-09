@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Gateway Build & Test
 
 on:
   push:
@@ -15,9 +15,8 @@ jobs:
 
       - name: Create secret JSON file
         run: |
-          mkdir -p src/resources
-          cat <<EOF > src/resources/firebase-service-account.json
-          ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          mkdir -p src/main/resources
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > src/main/resources/firebase-service-account.json
           EOF
 
       - name: Set up JDK 17
