@@ -20,23 +20,31 @@ public class RouterConfig {
 
 
 
-    public @Bean RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    @Bean
+    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("core-service", r -> r
+                .route("core-api", r -> r
                         .path("/api/**")
-                            .filters(f->f
-                                    .stripPrefix(1)
-                                    .addRequestHeader("X-Gateway", "chokak-gateway")
-                            )
-                            .uri(coreServiceUrl))
-                .route("cloud-storage", r -> r
+                        .filters(f -> f
+                                .stripPrefix(1)
+                                .addRequestHeader("X-Gateway", "chokak-gateway"))
+                        .uri(coreServiceUrl))
+
+                .route("core-static", r -> r
+                        .path("/", "/index.html", "/assets/**")
+                        .filters(f -> f
+                                .addRequestHeader("X-Gateway", "chokak-gateway"))
+                        .uri(coreServiceUrl))
+
+                .route("uploads", r -> r
                         .path("/uploads/**")
-                            .filters(f->f
-                                    .stripPrefix(1)
-                                    .addRequestHeader("X-Gateway", "chokak-gateway"))
-                            .uri(storageServiceUrl)
-                )
+                        .filters(f -> f
+                                .stripPrefix(1)
+                                .addRequestHeader("X-Gateway", "chokak-gateway"))
+                        .uri(storageServiceUrl))
+
                 .build();
     }
+
 
 }
